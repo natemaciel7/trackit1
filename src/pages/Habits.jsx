@@ -79,6 +79,25 @@ export default function Habits() {
       .finally(() => setLoading(false));
   }
 
+  function toggleDone(habitId, done) {
+    const url = `https://mock-api.bootcamp.respondeai.com.br/api/v2/trackit/habits/${habitId}/${
+      done ? "uncheck" : "check"
+    }`;
+
+    const config = { headers: { Authorization: `Bearer ${user.token}` } };
+
+    axios
+      .post(url, {}, config)
+      .then(() => {
+        setHabits((prevHabits) =>
+          prevHabits.map((habit) =>
+            habit.id === habitId ? { ...habit, done: !done } : habit
+          )
+        );
+      })
+      .catch((err) => console.error("Erro ao marcar hábito:", err));
+  }
+
   return (
     <Container>
       <Header>
@@ -122,7 +141,7 @@ export default function Habits() {
                 Cancelar
               </CancelButton>
               <SaveButton onClick={handleSave} disabled={loading}>
-                {loading ? <ThreeDots color="#FFF" height={13} /> : "Salvar"}
+                {loading ? <ThreeDots color="#F2F2F2" height={13} /> : "Salvar"}
               </SaveButton>
             </Buttons>
           </HabitForm>
@@ -144,6 +163,14 @@ export default function Habits() {
                     <p>Sequência atual: {habit.currentSequence} dias</p>
                     <p>Seu recorde: {habit.highestSequence} dias</p>
                   </>
+                )}
+                {selectedTab === "today" && (
+                  <CheckButton
+                    done={habit.done}
+                    onClick={() => toggleDone(habit.id, habit.done)}
+                  >
+                    ✔
+                  </CheckButton>
                 )}
                 <DaysContainer>
                   {["D", "S", "T", "Q", "Q", "S", "S"].map((day, index) => (
@@ -182,6 +209,25 @@ export default function Habits() {
   );
 }
 
+const CheckButton = styled.button`
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: ${({ done }) => (done ? "#8FC549" : "#e7e7e7")};
+  color: ${({ done }) => (done ? "white" : "#666666")};
+  border: none;
+  border-radius: 5px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ done }) => (done ? "#76a745" : "#d6d6d6")};
+  }
+`;
+
 const StyledInput = styled.input`
   width: 100%;
   padding: 10px;
@@ -192,6 +238,9 @@ const StyledInput = styled.input`
   margin-bottom: 10px;
   box-sizing: border-box;
   color: #666666;
+  background-color: ${({ disabled }) => (disabled ? "#f2f2f2" : "#fff")};
+  opacity: ${({ disabled }) => (disabled ? "0.6" : "1")};
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "text")};
   &::placeholder {
     color: #dbdbdb;
   }
@@ -222,7 +271,7 @@ const Header = styled.header`
   left: 0;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3);
 
-  H1 {
+  h1 {
     font-weight: 300;
   }
 `;
@@ -283,7 +332,7 @@ const HabitForm = styled.div`
 
 const DaysContainer = styled.div`
   display: flex;
-  gap: 5px;
+  gap: 10px;
 `;
 
 const DayButton = styled.button`
@@ -323,6 +372,7 @@ const SaveButton = styled.button`
 `;
 
 const HabitList = styled.div`
+  font-family: lexend deca;
   margin-top: 20px;
   color: #666666;
   padding: 10px;
@@ -333,11 +383,10 @@ const HabitItem = styled.div`
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 10px;
-
-  h3 {
+  d h3 {
     font-weight: 400;
     color: #666666;
-    border: 1px solid #d4d4d4;
+
     border-radius: 3px;
     padding: 5px;
   }
